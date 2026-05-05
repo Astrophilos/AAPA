@@ -10,6 +10,12 @@ We currently have 3 main files:
 2) Platedual.py -> Python source code used to communicate with AAPA and read NINA TPPA log files
 3) Platedual.exe  -> Precompiled executable version of the software, ready to use
 
+**Note:** To use the .py version (python native, non compiled) you'll need to run the following commands before being able to run it:
+
+```bash
+pip3 install -r requirements.txt
+```
+
 The full project is documented step-by-step here:
 
 https://www.youtube.com/playlist?list=PLCd4qyv6dp0awVDSS9xmQlvezqt05_NJu
