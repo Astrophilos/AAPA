@@ -381,7 +381,9 @@ class AstroController(ctk.CTk):
         e = 0
         while self.last_log_timestamp == ts:
             time.sleep(1); e+=1
-            if e>90: self.calib_status.set("Timeout NINA"); return
+            if e>90: 
+                self.calib_status.set("Timeout NINA"); 
+                return
             
         end_val = self.raw_az if axis == 'X' else self.raw_alt
         delta = abs(end_val - start_val)
@@ -402,7 +404,8 @@ class AstroController(ctk.CTk):
             if "X" in self.calib_axis_combo.get(): self.x_ratio.set(r)
             else: self.y_ratio.set(r)
             self.log(f"Ratio {r:.4f} applied.")
-        except: pass
+        except Exception as e:
+            self.log(f"Error during applying calibration: {e}")
 
     # --- MOVIMENTO ---
     def move(self, axis, degrees):
@@ -417,7 +420,8 @@ class AstroController(ctk.CTk):
             
             self.send_cmd(f"{axis}{steps}")
             self.log(f"Move {axis} {degrees}° ({steps} steps)")
-        except: self.log("Err Move")
+        except Exception as e:
+            self.log(f"Error during move: {e}")
 
     # --- NINA MONITOR ---
     def toggle_polar_monitor(self):
@@ -438,7 +442,8 @@ class AstroController(ctk.CTk):
                 ts = os.path.getmtime(latest)
                 if ts != self.last_log_timestamp:
                     self.parse_nina(latest); self.last_log_timestamp = ts
-            except: pass
+            except Exception as e:
+                self.log(f"Error in NINA monitor loop: {e}")
             time.sleep(1)
 
     def parse_nina(self, fpath):
@@ -453,7 +458,9 @@ class AstroController(ctk.CTk):
                     self.az_error_var.set(self.decimal_to_dms(self.raw_az))
                     self.last_update_var.set(f"Upd: {time.strftime('%H:%M:%S')}")
                     return
-        except: pass
+        except Exception as e: 
+            self.log(f"Error during parsing NINA log: {e}")
+            pass
 
     # --- UTILS ---
     def log(self, msg):
@@ -472,7 +479,8 @@ class AstroController(ctk.CTk):
                 self.is_connected = True; self.btn_connect.configure(fg_color="red", text="DISCONNETTI")
                 threading.Thread(target=self.read_serial_loop, daemon=True).start()
                 self.log("Connected.")
-            except Exception as e: self.log(f"Err: {e}")
+            except Exception as e:
+                self.log(f"Error during connection: {e}")
         else:
             if self.ser: self.ser.close()
             self.is_connected = False; self.btn_connect.configure(fg_color="green", text="CONNETTI")
@@ -483,10 +491,15 @@ class AstroController(ctk.CTk):
                 if self.ser.in_waiting:
                     l = self.ser.readline().decode().strip()
                     if l: self.after(0, lambda m=l: self.log(f"RX: {m}"))
-            except: break
+            except Exception as e: 
+                self.log(f"Error during serial reading: {e}")
+                break
             
     def send_cmd(self, c):
-        if self.is_connected: self.ser.write((c+"\n").encode())
+        if self.is_connected: 
+            self.ser.write((c+"\n").encode())
+        else:
+            self.log("Not connected. Cmd not sent.")
 
 if __name__ == "__main__":
     app = AstroController()
